@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Success</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" th:href="@{/images/logo.png}" type="image/x-icon">
+</head>
+<body>
+
+<div th:replace="~{navbar}"></div>
+<script th:src="@{/js/theme.js}"></script>
+
+<div class="center-box">
+    <div class="card">
+
+        <h1 class="page-title" style="color:#1f9d55;">Success</h1>
+
+        <p class="info-text" style="margin-top:15px;" th:text="${message}">
+            Action completed successfully!
+        </p>
+
+        <div class="form-actions" style="margin-top:30px;">
+            <a th:if="${session.role == 'admin'}" th:href="@{/admin}" class="btn">Back to Dashboard</a>
+            <a th:unless="${session.role == 'admin'}" th:href="@{/student}" class="btn">Back to Dashboard</a>
+        </div>
+
+    </div>
+</div>
+
+<script th:src="@{/js/change.js}"></script>
+</body>
+</html>

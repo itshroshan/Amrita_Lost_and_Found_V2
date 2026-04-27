@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Error</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" th:href="@{/images/logo.png}" type="image/x-icon">
+</head>
+<body>
+
+<div th:replace="~{navbar}"></div>
+<script th:src="@{/js/theme.js}"></script>
+
+<div class="center-box ">
+    <div class="card">
+
+        <h1 style="color:#7a0026;" th:text="${title}">Error Title</h1>
+        <p style="margin-top:15px;" th:text="${message}">Error message goes here.</p>
+
+        <div class="form-actions" style="margin-top:25px;">
+            <a th:href="@{/verify-otp}" class="btn">Try again</a>
+        </div>
+
+    </div>
+</div>
+<script th:src="@{/js/change.js}"></script>
+
+</body>
+</html>

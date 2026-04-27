@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Claim Item</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" th:href="@{/images/logo.png}" type="image/x-icon">
+</head>
+<body>
+
+<div th:replace="~{navbar}"></div>
+<script th:src="@{/js/theme.js}"></script>
+
+<h1 class="page-title navGap">Claim Item</h1>
+
+<div class="form-wrapper">
+    <form th:action="@{/claim-item/{id}(id=${item_id})}" method="post">
+
+        <input type="text" name="student_name" placeholder="Student Name" required>
+        <input type="text" name="registration_number" placeholder="Registration Number" required>
+
+        <div class="form-actions">
+            <button type="submit" class="btn">Confirm Claim</button>
+        </div>
+
+        <div class="back-center">
+            <a th:href="@{/view-items}" class="btn">Back to Items</a>
+        </div>
+
+    </form>
+</div>
+
+<div th:replace="~{footer}"></div>
+<script th:src="@{/js/change.js}"></script>
+
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Student Registration</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" th:href="@{/images/logo.png}" type="image/x-icon">
+</head>
+<body>
+
+<div th:replace="~{navbar}"></div>
+
+<h1 class="page-title navGap">Student Registration</h1>
+
+<div class="form-wrapper">
+    <form th:action="@{/register}" method="post">
+
+        <input type="text" name="name" placeholder="Full Name" required>
+
+        <input type="email" name="email" placeholder="College Email" required>
+
+        <input type="password" name="password" placeholder="Password" required>
+
+        <div class="form-actions">
+            <button type="submit" class="btn">Register</button>
+        </div>
+
+        <p style="text-align:center; margin-top:15px;">
+            Already registered? <a th:href="@{/login}">Login</a>
+        </p>
+
+    </form>
+</div>
+
+<div th:replace="~{footer}"></div>
+
+<script th:src="@{/js/change.js}"></script>
+<script th:src="@{/js/theme.js}"></script>
+
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" th:href="@{/images/logo.png}" type="image/x-icon">
+    <title>View Lost Items</title>
+</head>
+<body>
+
+<div th:replace="~{navbar}"></div>
+<script th:src="@{/js/theme.js}"></script>
+
+<div class="dashboardd">
+    <h2 class="navGap">Reported Lost Items</h2>
+
+    <table class="tab" border="1" cellpadding="10">
+        <tr>
+            <th>Student Email</th>
+            <th>Item Name</th>
+            <th>Description</th>
+            <th>Last Seen Location</th>
+            <th>Actions</th>
+        </tr>
+
+        <tr th:each="item : ${items}">
+            <td th:text="${item.studentEmail}">Student Email</td>
+            <td th:text="${item.itemName}">Item Name</td>
+            <td th:text="${item.description}">Description</td>
+            <td th:text="${item.location}">Location</td>
+            <td>
+                <a th:href="@{/delete-lost-item/{id}(id=${item.id})}"
+                   class="btn btn-outline"
+                   onclick="return confirm('Are you sure you want to delete this lost item report?');">
+                   Delete
+                </a>
+            </td>
+        </tr>
+    </table>
+
+    <br>
+    <div class="back-center">
+        <a th:href="@{/admin}" class="btn">Back to Dashboard</a>
+    </div>
+</div>
+<div th:replace="~{footer}"></div>
+<script th:src="@{/js/change.js}"></script>
+
+</body>
+</html>
