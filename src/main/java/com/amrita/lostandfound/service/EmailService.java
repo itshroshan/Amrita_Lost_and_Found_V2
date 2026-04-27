@@ -22,4 +22,17 @@ public class EmailService {
 
         mailSender.send(message);
     }
+
+    // --- NEW: DEDICATED MATCH NOTIFICATION METHOD ---
+    public void sendMatchNotification(String toEmail, String matchMessage) {
+        System.out.println("Sending Match Notification to " + toEmail);
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("Item Match Found! - Amrita Lost & Found"); // Clean subject line!
+        message.setText(matchMessage); // Uses exactly the message we generate
+
+        mailSender.send(message);
+    }
+
 }

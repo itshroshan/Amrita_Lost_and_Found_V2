@@ -3,6 +3,7 @@ package com.amrita.lostandfound.controller;
 import com.amrita.lostandfound.model.ClaimedItem;
 import com.amrita.lostandfound.model.FoundItem;
 import com.amrita.lostandfound.model.LostItem;
+import com.amrita.lostandfound.service.SmartMatchService;
 import com.amrita.lostandfound.repository.ClaimedItemRepository;
 import com.amrita.lostandfound.repository.FoundItemRepository;
 import com.amrita.lostandfound.repository.LostItemRepository;
@@ -34,6 +35,9 @@ public class ItemController {
 
     @Autowired
     private ClaimedItemRepository claimedItemRepository;
+
+    @Autowired
+    private SmartMatchService smartMatchService;
 
     private static final String UPLOAD_DIR = "src/main/resources/static/uploads/";
 
@@ -75,6 +79,9 @@ public class ItemController {
         item.setImage(filename);
         item.setReportedBy("Admin");
         foundItemRepository.save(item);
+
+        // Trigger the Smart Match engine to scan lost items!
+        smartMatchService.scanForFoundItem(item);
 
         return "redirect:/admin";
     }
@@ -215,6 +222,9 @@ public class ItemController {
         lostItem.setLocation(location);
         lostItemRepository.save(lostItem);
 
+        // Trigger the Smart Match engine to scan found items!
+        smartMatchService.scanForLostItem(lostItem);
+
         return "redirect:/student";
     }
 
@@ -249,6 +259,9 @@ public class ItemController {
         item.setImage(filename);
         item.setReportedBy((String) session.getAttribute("email"));
         foundItemRepository.save(item);
+
+        // Trigger the Smart Match engine to scan lost items!
+        smartMatchService.scanForFoundItem(item);
 
         return "redirect:/student";
     }

@@ -33,5 +33,5 @@ build/
 .vscode/
 
 database.db
-!**/src/main/resources/static/uploads
+!**/src/main/resources/static/uploads/
 
