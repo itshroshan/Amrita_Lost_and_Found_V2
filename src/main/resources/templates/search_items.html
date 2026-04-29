@@ -38,7 +38,7 @@
                 <td th:text="${item.description}">Description</td>
                 <td th:text="${item.location}">Location</td>
                 <td>
-                    <img th:src="@{'/uploads/' + ${item.image}}" class="item-image" onclick="openImage(this.src)">
+                    <img th:src="${item.image}" class="item-image" onclick="openImage(this.src)">
                 </td>
             </tr>
         </th:block>
@@ -49,7 +49,7 @@
                 <td th:text="${item.description}">Description</td>
                 <td th:text="${item.location}">Location</td>
                 <td>
-                    <img th:src="@{'/uploads/' + ${item.image}}" class="item-image" onclick="openImage(this.src)">
+                    <img th:src="${item.image}" class="item-image" onclick="openImage(this.src)">
                 </td>
             </tr>
         </th:block>

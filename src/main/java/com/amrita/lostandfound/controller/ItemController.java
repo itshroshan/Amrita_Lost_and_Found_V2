@@ -4,6 +4,7 @@ import com.amrita.lostandfound.model.ClaimedItem;
 import com.amrita.lostandfound.model.FoundItem;
 import com.amrita.lostandfound.model.LostItem;
 import com.amrita.lostandfound.service.SmartMatchService;
+import com.amrita.lostandfound.service.CloudinaryService;
 import com.amrita.lostandfound.repository.ClaimedItemRepository;
 import com.amrita.lostandfound.repository.FoundItemRepository;
 import com.amrita.lostandfound.repository.LostItemRepository;
@@ -23,6 +24,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.security.Principal;
 
 @Controller
 public class ItemController {
@@ -38,6 +40,9 @@ public class ItemController {
 
     @Autowired
     private SmartMatchService smartMatchService;
+
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     private static final String UPLOAD_DIR = "src/main/resources/static/uploads/";
 
@@ -59,28 +64,43 @@ public class ItemController {
                                  @RequestParam String description,
                                  @RequestParam String location,
                                  @RequestParam("image") MultipartFile image,
-                                 HttpSession session, Model model) throws IOException {
-        if (!"admin".equals(session.getAttribute("role"))) return "redirect:/";
+                                 Model model) { // Notice we deleted HttpSession!
 
-        String filename = StringUtils.cleanPath(image.getOriginalFilename());
-        if (!filename.toLowerCase().matches(".*\\.(jpg|jpeg|png)$")) {
-            model.addAttribute("error", "Only JPG/JPEG/PNG images allowed");
-            return "upload_item";
-        }
-
-        Files.createDirectories(Paths.get(UPLOAD_DIR));
-        Path path = Paths.get(UPLOAD_DIR + filename);
-        image.transferTo(new File(path.toAbsolutePath().toString()));
-
+        // 1. Create the item
         FoundItem item = new FoundItem();
         item.setItemName(itemName);
         item.setDescription(description);
         item.setLocation(location);
-        item.setImage(filename);
         item.setReportedBy("Admin");
+
+        // 2. Handle the Cloud Upload
+        if (!image.isEmpty()) {
+            String filename = org.springframework.util.StringUtils.cleanPath(image.getOriginalFilename());
+
+            // Optional: Keep your original file extension validation
+            if (!filename.toLowerCase().matches(".*\\.(jpg|jpeg|png)$")) {
+                model.addAttribute("error", "Only JPG/JPEG/PNG images allowed");
+                return "upload_item";
+            }
+
+            try {
+                // Send physical file to Cloudinary, get a secure web URL back
+                String imageUrl = cloudinaryService.uploadImage(image);
+
+                // Save the URL to your entity (Use setImageUrl() if you renamed the field!)
+                item.setImage(imageUrl);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                model.addAttribute("error", "Failed to upload image to the cloud.");
+                return "upload_item";
+            }
+        }
+
+        // 3. Save text details + image URL to PostgreSQL
         foundItemRepository.save(item);
 
-        // Trigger the Smart Match engine to scan lost items!
+        // 4. Trigger the background Smart Match engine
         smartMatchService.scanForFoundItem(item);
 
         return "redirect:/admin";
@@ -94,18 +114,23 @@ public class ItemController {
     }
 
     @GetMapping("/delete-item/{id}")
-    public String deleteItem(@PathVariable Long id, HttpSession session) {
-        if (!"admin".equals(session.getAttribute("role"))) return "redirect:/";
+    public String deleteItem(@PathVariable Long id) { // We deleted HttpSession!
 
         Optional<FoundItem> itemOpt = foundItemRepository.findById(id);
+
         if (itemOpt.isPresent()) {
-            String imageFilename = itemOpt.get().getImage();
-            File imageFile = new File(UPLOAD_DIR + imageFilename);
-            if (imageFile.exists()) {
-                imageFile.delete();
+            FoundItem item = itemOpt.get();
+
+            // 1. Assassinate the image in the cloud
+            // We check if it's not null just in case an item was uploaded without an image
+            if (item.getImage() != null && !item.getImage().isEmpty()) {
+                cloudinaryService.deleteImage(item.getImage());
             }
+
+            // 2. Erase the record from the PostgreSQL database
             foundItemRepository.deleteById(id);
         }
+
         return "redirect:/view-items";
     }
 
@@ -167,9 +192,23 @@ public class ItemController {
     }
 
     @GetMapping("/delete-claimed-item/{id}")
-    public String deleteClaimedItem(@PathVariable Long id, HttpSession session) {
-        if (!"admin".equals(session.getAttribute("role"))) return "redirect:/";
-        claimedItemRepository.deleteById(id);
+    public String deleteClaimedItem(@PathVariable Long id) { // HttpSession removed!
+
+        // 1. Fetch the item first so we can grab the Cloudinary URL
+        Optional<ClaimedItem> itemOpt = claimedItemRepository.findById(id);
+
+        if (itemOpt.isPresent()) {
+            ClaimedItem item = itemOpt.get();
+
+            // 2. Assassinate the image in the cloud
+            if (item.getImage() != null && !item.getImage().isEmpty()) {
+                cloudinaryService.deleteImage(item.getImage());
+            }
+
+            // 3. Erase the record from the PostgreSQL database
+            claimedItemRepository.deleteById(id);
+        }
+
         return "redirect:/claimed-items";
     }
 
@@ -239,28 +278,40 @@ public class ItemController {
                                   @RequestParam String description,
                                   @RequestParam String location,
                                   @RequestParam("image") MultipartFile image,
-                                  HttpSession session, Model model) throws IOException {
-        if (!"student".equals(session.getAttribute("role"))) return "redirect:/";
-
-        String filename = StringUtils.cleanPath(image.getOriginalFilename());
-        if (!filename.toLowerCase().matches(".*\\.(jpg|jpeg|png)$")) {
-            model.addAttribute("error", "Only JPG/JPEG/PNG images allowed");
-            return "report_found";
-        }
-
-        Files.createDirectories(Paths.get(UPLOAD_DIR));
-        Path path = Paths.get(UPLOAD_DIR + filename);
-        image.transferTo(new File(path.toAbsolutePath().toString()));
+                                  Principal principal, // Spring Security automatically passes the logged-in user here!
+                                  Model model) {
 
         FoundItem item = new FoundItem();
         item.setItemName(itemName);
         item.setDescription(description);
         item.setLocation(location);
-        item.setImage(filename);
-        item.setReportedBy((String) session.getAttribute("email"));
+
+        // principal.getName() gets the email of the currently logged-in student
+        item.setReportedBy(principal.getName());
+
+        // Handle the Cloudinary Upload
+        if (!image.isEmpty()) {
+            String filename = org.springframework.util.StringUtils.cleanPath(image.getOriginalFilename());
+
+            if (!filename.toLowerCase().matches(".*\\.(jpg|jpeg|png)$")) {
+                model.addAttribute("error", "Only JPG/JPEG/PNG images allowed");
+                return "report_found";
+            }
+
+            try {
+                // Send to Cloudinary and get the URL
+                String imageUrl = cloudinaryService.uploadImage(image);
+                item.setImage(imageUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+                model.addAttribute("error", "Failed to upload image to the cloud.");
+                return "report_found";
+            }
+        }
+
         foundItemRepository.save(item);
 
-        // Trigger the Smart Match engine to scan lost items!
+        // Trigger the Smart Match engine
         smartMatchService.scanForFoundItem(item);
 
         return "redirect:/student";

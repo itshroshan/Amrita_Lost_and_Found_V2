@@ -32,7 +32,7 @@
 
             <td>
                 <img
-                    th:src="@{'/uploads/' + ${item.image}}"
+                    th:src="${item.image}"
                     class="item-image"
                     onclick="openImage(this.src)"
                 >

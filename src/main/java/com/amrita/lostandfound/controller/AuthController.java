@@ -3,7 +3,9 @@ package com.amrita.lostandfound.controller;
 import com.amrita.lostandfound.model.User;
 import com.amrita.lostandfound.repository.UserRepository;
 import com.amrita.lostandfound.service.EmailService;
+import com.amrita.lostandfound.service.OtpRateLimiterService;
 import jakarta.servlet.http.HttpSession;
+import io.github.bucket4j.Bucket;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -26,10 +28,17 @@ public class AuthController {
     private JavaMailSender mailSender;
 
     @Autowired
+    private OtpRateLimiterService rateLimiterService;
+
+    @Autowired
     private EmailService emailService;
 
     private boolean validStudentEmail(String email) {
         return email != null && email.startsWith("bl.") && email.endsWith("@bl.students.amrita.edu");
+    }
+
+    private boolean validFacultyEmail(String email){
+        return email != null && email.endsWith("@blr.amrita.edu");
     }
 
     private String generateOtp() {
@@ -91,7 +100,7 @@ public class AuthController {
                                @RequestParam String password,
                                HttpSession session,
                                Model model) {
-        if (!validStudentEmail(email)) {
+        if (!validStudentEmail(email) && !validFacultyEmail(email)) {
             model.addAttribute("title", "Invalid Email");
             model.addAttribute("message", "Please use your official Amrita student email ID.");
             model.addAttribute("redirect_url", "/register");
@@ -102,6 +111,15 @@ public class AuthController {
             model.addAttribute("title", "Already Registered");
             model.addAttribute("message", "This email is already registered. Try logging in.");
             model.addAttribute("redirect_url", "/login");
+            return "error";
+        }
+
+        // --- BUCKET4J RATE LIMITER CHECK ---
+        Bucket bucket = rateLimiterService.resolveBucket(email);
+        if (!bucket.tryConsume(1)) {
+            model.addAttribute("title", "Rate Limit Exceeded");
+            model.addAttribute("message", "Too many OTP requests. Please wait 15 minutes before trying again.");
+            model.addAttribute("redirect_url", "/register");
             return "error";
         }
 
@@ -140,7 +158,12 @@ public class AuthController {
             user.setName(regData.get("name"));
             user.setEmail(email);
             user.setPassword(regData.get("password"));
-            user.setRole("student");
+            if(email.endsWith("@bl.students.amrita.edu")){
+                user.setRole("student");
+            }
+            else {
+                user.setRole("faculty");
+            }
             user.setIsVerified(1);
 
             userRepository.save(user);
@@ -181,6 +204,13 @@ public class AuthController {
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null || !BCrypt.checkpw(current_password, user.getPassword())) {
             model.addAttribute("error", "Current password is incorrect");
+            return "change_password";
+        }
+
+        // --- BUCKET4J RATE LIMITER CHECK ---
+        Bucket bucket = rateLimiterService.resolveBucket(email);
+        if (!bucket.tryConsume(1)) {
+            model.addAttribute("error", "Too many OTP requests. Please wait 15 minutes before trying again.");
             return "change_password";
         }
 
@@ -233,6 +263,12 @@ public class AuthController {
     public String forgotPasswordPost(@RequestParam String email, HttpSession session, Model model) {
         if (userRepository.findByEmail(email).isEmpty()) {
             model.addAttribute("error", "Email not registered");
+            return "forgot_password";
+        }
+        // --- BUCKET4J RATE LIMITER CHECK ---
+        Bucket bucket = rateLimiterService.resolveBucket(email);
+        if (!bucket.tryConsume(1)) {
+            model.addAttribute("error", "Too many OTP requests. Please wait 15 minutes before trying again.");
             return "forgot_password";
         }
 
