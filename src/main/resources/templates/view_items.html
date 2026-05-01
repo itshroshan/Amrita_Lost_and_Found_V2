@@ -54,7 +54,38 @@
 
     </table>
 
-    <br>
+    <!-- --- MODERN PAGINATION CONTROLS --- -->
+    <div th:if="${totalPages > 1}" class="custom-pagination">
+
+        <!-- Previous Arrow (Left) -->
+        <!-- Becomes 'disabled' and unclickable if we are on the very first page (page 0) -->
+        <a th:href="${currentPage > 0} ? @{/view-items(page=${currentPage - 1})} : '#'"
+           class="page-link-item page-arrow"
+           th:classappend="${currentPage == 0} ? 'disabled' : ''"
+           title="Previous Page">
+            &larr;
+        </a>
+
+        <!-- Page Numbers (1, 2, 3...) -->
+        <!-- We generate a sequence from 1 to the total number of pages -->
+        <a th:each="i : ${#numbers.sequence(1, totalPages)}"
+           th:href="@{/view-items(page=${i - 1})}"
+           class="page-link-item"
+           th:classappend="${currentPage == (i - 1)} ? 'active' : ''"
+           th:text="${i}">
+        </a>
+
+        <!-- Next Arrow (Right) -->
+        <!-- Becomes 'disabled' and unclickable if we are on the very last page -->
+        <a th:href="${currentPage < totalPages - 1} ? @{/view-items(page=${currentPage + 1})} : '#'"
+           class="page-link-item page-arrow"
+           th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''"
+           title="Next Page">
+            &rarr;
+        </a>
+
+    </div>
+
     <div class="back-center">
         <a th:href="@{/admin}" class="btn">Back to Dashboard</a>
     </div>

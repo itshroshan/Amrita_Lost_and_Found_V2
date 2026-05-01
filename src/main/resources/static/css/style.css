@@ -531,3 +531,52 @@ a.btn-outline {
     text-decoration: underline;
     opacity: 0.9;
 }
+
+/* --- OVERHAULED PAGINATION STYLES --- */
+.custom-pagination {
+    display: flex !important;
+    justify-content: center !important; /* Forces it to the center */
+    align-items: center;
+    gap: 15px; /* Increased gap between numbers */
+    width: 100%;
+    margin: 40px auto; /* Adds breathing room above and below */
+    font-family: sans-serif;
+}
+
+.page-link-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 45px; /* Much larger circles */
+    height: 45px; /* Much larger circles */
+    border-radius: 50%;
+    text-decoration: none !important; /* Removes the purple underline */
+    color: #333 !important;
+    font-size: 1.1rem; /* Larger text */
+    font-weight: bold;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+/* Hover effect for inactive numbers */
+.page-link-item:hover:not(.disabled):not(.active) {
+    background-color: #e0e0e0;
+    transform: scale(1.05); /* Slight "pop" when hovering */
+}
+
+/* The highlighted current page */
+.page-link-item.active {
+    background-color: #A91D3A !important; /* Matched to your Amrita maroon theme! */
+    color: white !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Disabled state for arrows at the boundaries */
+.page-link-item.disabled {
+    color: #cccccc !important;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.page-arrow {
+    font-size: 1.5rem; /* Much larger arrows */
+}

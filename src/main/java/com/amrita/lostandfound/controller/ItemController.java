@@ -12,15 +12,13 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -43,8 +41,6 @@ public class ItemController {
 
     @Autowired
     private CloudinaryService cloudinaryService;
-
-    private static final String UPLOAD_DIR = "src/main/resources/static/uploads/";
 
     // --- ADMIN ROUTES ---
     @GetMapping("/admin")
@@ -107,10 +103,23 @@ public class ItemController {
     }
 
     @GetMapping("/view-items")
-    public String viewItems(HttpSession session, Model model) {
-        if (!"admin".equals(session.getAttribute("role"))) return "redirect:/";
-        model.addAttribute("items", foundItemRepository.findAll());
-        return "view_items"; // view_items.html
+    public String viewItems(@RequestParam(defaultValue = "0") int page, Model model) {
+
+        // 1. Set how many items you want to display per page
+        int pageSize = 2;
+
+        // 2. Build the pagination request
+        Pageable pageable = PageRequest.of(page, pageSize);
+
+        // 3. Ask PostgreSQL for ONLY this specific page of data
+        Page<FoundItem> itemPage = foundItemRepository.findAll(pageable);
+
+        // 4. Send the data and the page numbers to the HTML template
+        model.addAttribute("items", itemPage.getContent()); // Gets just the list of items for this page
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", itemPage.getTotalPages());
+
+        return "view_items";
     }
 
     @GetMapping("/delete-item/{id}")
@@ -135,10 +144,21 @@ public class ItemController {
     }
 
     @GetMapping("/view-lost-items")
-    public String viewLostItems(HttpSession session, Model model) {
+    public String viewLostItems(@RequestParam(defaultValue = "0") int page, HttpSession session, Model model) {
         if (!"admin".equals(session.getAttribute("role"))) return "redirect:/";
-        model.addAttribute("items", lostItemRepository.findAll());
-        return "view_lost_items"; // view_lost_item.html
+
+        // Increased to 10 since there are no images weighing the page down!
+        int pageSize = 10;
+        Pageable pageable = PageRequest.of(page, pageSize);
+
+        // JpaRepository has this built-in, no custom repository code needed
+        Page<LostItem> itemPage = lostItemRepository.findAll(pageable);
+
+        model.addAttribute("items", itemPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", itemPage.getTotalPages());
+
+        return "view_lost_items";
     }
 
     @GetMapping("/delete-lost-item/{id}")
@@ -184,11 +204,20 @@ public class ItemController {
     }
 
     @GetMapping("/claimed-items")
-    public String claimedItems(HttpSession session, Model model) {
+    public String claimedItems(@RequestParam(defaultValue = "0") int page, HttpSession session, Model model) {
         if (!"admin".equals(session.getAttribute("role"))) return "redirect:/";
-        // Assuming your repository has a method to sort, otherwise findAll() works too
-        model.addAttribute("items", claimedItemRepository.findAllByOrderByClaimedAtDesc());
-        return "claimed_items"; // claimed_items.html
+
+        int pageSize = 2;
+        Pageable pageable = PageRequest.of(page, pageSize);
+
+        // Fetch the sorted AND paginated data
+        Page<ClaimedItem> itemPage = claimedItemRepository.findAllByOrderByClaimedAtDesc(pageable);
+
+        model.addAttribute("items", itemPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", itemPage.getTotalPages());
+
+        return "claimed_items";
     }
 
     @GetMapping("/delete-claimed-item/{id}")
@@ -222,23 +251,31 @@ public class ItemController {
 
     @GetMapping("/search")
     public String searchItems(@RequestParam(required = false, defaultValue = "") String query,
+                              @RequestParam(defaultValue = "0") int page,
                               HttpSession session, Model model) {
+
         if (!"student".equals(session.getAttribute("role"))) return "redirect:/";
 
-        List<FoundItem> allItems = foundItemRepository.findAll();
-        List<FoundItem> searchResults;
+        int pageSize = 2; // Set how many search results per page
+        Pageable pageable = PageRequest.of(page, pageSize);
+        Page<FoundItem> itemPage;
 
+        // If they typed something, search for it using the Pageable repository method
         if (query != null && !query.trim().isEmpty()) {
-            // Using a custom repository method or simple stream filtering. Assuming custom method exists:
-            searchResults = foundItemRepository.findByItemNameContainingIgnoreCaseOrLocationContainingIgnoreCase(query, query);
-        } else {
-            searchResults = List.of(); // Empty list if no query
+            itemPage = foundItemRepository.findByItemNameContainingIgnoreCaseOrLocationContainingIgnoreCase(query, query, pageable);
+        }
+        // If the search bar is empty, just load the regular paginated list
+        else {
+            itemPage = foundItemRepository.findAll(pageable);
         }
 
+        // Pass everything to the HTML
         model.addAttribute("query", query);
-        model.addAttribute("search_results", searchResults);
-        model.addAttribute("all_items", allItems);
-        return "search_items"; // search_items.html
+        model.addAttribute("items", itemPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", itemPage.getTotalPages());
+
+        return "search_items";
     }
 
     @GetMapping("/report-lost")
@@ -278,18 +315,27 @@ public class ItemController {
                                   @RequestParam String description,
                                   @RequestParam String location,
                                   @RequestParam("image") MultipartFile image,
-                                  Principal principal, // Spring Security automatically passes the logged-in user here!
+                                  HttpSession session, // <-- SWAPPED: Using HttpSession instead of Principal!
                                   Model model) {
+
+        // 1. Grab the user's email from the session to fix the NullPointerException
+        String uploaderEmail = (String) session.getAttribute("email");
+
+        // Safety check: If they somehow bypassed the login screen, kick them back to login
+        if (uploaderEmail == null) {
+            return "redirect:/login";
+        }
 
         FoundItem item = new FoundItem();
         item.setItemName(itemName);
         item.setDescription(description);
         item.setLocation(location);
 
-        // principal.getName() gets the email of the currently logged-in student
-        item.setReportedBy(principal.getName());
+        // 2. Attach the logged-in student's email to the item
+        // (Note: If your entity uses "setUploadedBy" instead of "setReportedBy", change this here!)
+        item.setReportedBy(uploaderEmail);
 
-        // Handle the Cloudinary Upload
+        // 3. Handle the Cloudinary Upload
         if (!image.isEmpty()) {
             String filename = org.springframework.util.StringUtils.cleanPath(image.getOriginalFilename());
 
@@ -299,7 +345,7 @@ public class ItemController {
             }
 
             try {
-                // Send to Cloudinary and get the URL
+                // Send to Cloudinary (Your Thumbnailator service squishes it first!)
                 String imageUrl = cloudinaryService.uploadImage(image);
                 item.setImage(imageUrl);
             } catch (IOException e) {
@@ -309,9 +355,11 @@ public class ItemController {
             }
         }
 
+        // 4. Save the text data to PostgreSQL
         foundItemRepository.save(item);
 
-        // Trigger the Smart Match engine
+        // 5. Trigger the Smart Match engine
+        // (Because you added @Async, this runs instantly in the background without freezing the webpage!)
         smartMatchService.scanForFoundItem(item);
 
         return "redirect:/student";

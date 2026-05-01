@@ -36,8 +36,35 @@
             </td>
         </tr>
     </table>
+    <!-- --- MODERN PAGINATION CONTROLS --- -->
+    <div th:if="${totalPages > 1}" class="custom-pagination">
 
-    <br>
+        <!-- Previous Arrow -->
+        <a th:href="${currentPage > 0} ? @{/view-lost-items(page=${currentPage - 1})} : '#'"
+           class="page-link-item page-arrow"
+           th:classappend="${currentPage == 0} ? 'disabled' : ''"
+           title="Previous Page">
+            &larr;
+        </a>
+
+        <!-- Page Numbers -->
+        <a th:each="i : ${#numbers.sequence(1, totalPages)}"
+           th:href="@{/view-lost-items(page=${i - 1})}"
+           class="page-link-item"
+           th:classappend="${currentPage == (i - 1)} ? 'active' : ''"
+           th:text="${i}">
+        </a>
+
+        <!-- Next Arrow -->
+        <a th:href="${currentPage < totalPages - 1} ? @{/view-lost-items(page=${currentPage + 1})} : '#'"
+           class="page-link-item page-arrow"
+           th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''"
+           title="Next Page">
+            &rarr;
+        </a>
+
+    </div>
+
     <div class="back-center">
         <a th:href="@{/admin}" class="btn">Back to Dashboard</a>
     </div>

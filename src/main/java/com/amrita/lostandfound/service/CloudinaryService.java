@@ -40,17 +40,27 @@ public class CloudinaryService {
 
     public void deleteImage(String imageUrl) {
         if (imageUrl == null || imageUrl.isEmpty()) {
-            return; // Nothing to delete
+            return;
         }
 
         try {
-            // Extract the Public ID from the URL
-            // Example: .../upload/v123456789/my_image.jpg -> extracts "my_image"
-            String publicId = imageUrl.substring(imageUrl.lastIndexOf("/") + 1, imageUrl.lastIndexOf("."));
+            String publicId = "";
 
-            // Tell Cloudinary to permanently destroy the file
-            cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
-            System.out.println("Successfully deleted image from Cloudinary: " + publicId);
+            // 1. Check if the image is in our specific folder
+            if (imageUrl.contains("amrita-lost-and-found/")) {
+                // Grabs everything from the start of the folder name to the dot before the extension
+                // Example: extracts "amrita-lost-and-found/my_image"
+                publicId = imageUrl.substring(imageUrl.indexOf("amrita-lost-and-found/"), imageUrl.lastIndexOf("."));
+            } else {
+                // Fallback just in case you have older images uploaded before we made the folder
+                publicId = imageUrl.substring(imageUrl.lastIndexOf("/") + 1, imageUrl.lastIndexOf("."));
+            }
+
+            // 2. Tell Cloudinary to destroy it and CAPTURE the response
+            Map result = cloudinary.uploader().destroy(publicId, com.cloudinary.utils.ObjectUtils.emptyMap());
+
+            // 3. Print the actual API response (It should print "ok" if successful, or "not found" if it missed)
+            System.out.println("Cloudinary delete result for [" + publicId + "]: " + result.get("result"));
 
         } catch (Exception e) {
             System.err.println("Failed to delete image from Cloudinary: " + e.getMessage());
