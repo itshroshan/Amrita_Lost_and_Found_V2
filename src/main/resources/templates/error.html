@@ -12,9 +12,14 @@
 
 <div class="center-box">
     <div class="card">
-        <h1 style="color:#7a0026;" th:text="${title}">Error Title</h1>
-        <p style="margin-top:15px;" th:text="${message}">Error message goes here.</p>
 
+        <!-- Falls back to Spring Boot's 'status' (e.g., 404) if your custom OTP title is missing -->
+        <h1 style="color:#7a0026;" th:text="${title != null ? title : (status != null ? status + ' - Error' : 'Oops!')}">Error Title</h1>
+
+        <!-- Falls back to a standard "Not Found" message if your custom OTP message is missing -->
+        <p style="margin-top:15px;" th:text="${message != null and message != 'No message available' and message != '' ? message : 'The page you are looking for does not exist.'}">Error message goes here.</p>
+
+        <!-- Your existing OTP features are completely untouched -->
         <th:block th:if="${show_forgot == true}">
             <p class="info-text" style="margin-top:15px;">
                 <a th:href="@{/forgot-password}">Forgot Password?</a>
@@ -22,8 +27,10 @@
         </th:block>
 
         <div class="form-actions" style="margin-top:25px;">
-            <a th:href="@{${redirect_url}}" class="btn">Back</a>
+            <!-- THE UPDATED BACK BUTTON: Uses your custom redirect_url, or defaults to the dashboard ('/') on a 404 -->
+            <a th:href="@{${redirect_url != null ? redirect_url : '/'}}" class="btn">Back</a>
         </div>
+
     </div>
 </div>
 

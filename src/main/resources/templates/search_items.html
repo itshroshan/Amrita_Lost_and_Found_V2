@@ -22,8 +22,9 @@
 </div>
 
 <!-- Updated to use the new 'items' variable -->
-<p th:if="${query != null and query != '' and #lists.isEmpty(items)}" class="info-text" style="text-align: center; color: red; font-weight: bold;">
-    No items found matching your search.
+<!-- Shows the error, but the table below will still successfully render all the fallback items! -->
+<p th:if="${searchFailed}" class="info-text" style="text-align: center; color: #A91D3A; font-weight: bold; margin-bottom: 15px;">
+    No items found matching "<span th:text="${query}"></span>". Showing all items instead.
 </p>
 
 <div class="dashboard">

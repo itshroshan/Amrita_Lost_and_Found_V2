@@ -256,16 +256,23 @@ public class ItemController {
 
         if (!"student".equals(session.getAttribute("role"))) return "redirect:/";
 
-        int pageSize = 2; // Set how many search results per page
+        int pageSize = 6;
         Pageable pageable = PageRequest.of(page, pageSize);
         Page<FoundItem> itemPage;
 
-        // If they typed something, search for it using the Pageable repository method
+        // NEW: A flag to tell the HTML if a search yielded zero results
+        boolean searchFailed = false;
+
         if (query != null && !query.trim().isEmpty()) {
             itemPage = foundItemRepository.findByItemNameContainingIgnoreCaseOrLocationContainingIgnoreCase(query, query, pageable);
-        }
-        // If the search bar is empty, just load the regular paginated list
-        else {
+
+            // NEW FALLBACK: If they searched for something but nothing was found...
+            if (itemPage.isEmpty()) {
+                searchFailed = true; // Turn on the warning message
+                itemPage = foundItemRepository.findAll(pageable); // Load all items anyway!
+            }
+        } else {
+            // If the search bar is empty, just load the regular paginated list
             itemPage = foundItemRepository.findAll(pageable);
         }
 
@@ -274,6 +281,7 @@ public class ItemController {
         model.addAttribute("items", itemPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", itemPage.getTotalPages());
+        model.addAttribute("searchFailed", searchFailed); // Send the flag to Thymeleaf
 
         return "search_items";
     }
