@@ -106,7 +106,7 @@ public class ItemController {
     public String viewItems(@RequestParam(defaultValue = "0") int page, Model model) {
 
         // 1. Set how many items you want to display per page
-        int pageSize = 2;
+        int pageSize = 10;
 
         // 2. Build the pagination request
         Pageable pageable = PageRequest.of(page, pageSize);
@@ -256,7 +256,7 @@ public class ItemController {
 
         if (!"student".equals(session.getAttribute("role"))) return "redirect:/";
 
-        int pageSize = 6;
+        int pageSize = 10;
         Pageable pageable = PageRequest.of(page, pageSize);
         Page<FoundItem> itemPage;
 
