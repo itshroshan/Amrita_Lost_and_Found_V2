@@ -7,6 +7,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Optional;
+
 @Configuration
 public class DatabaseSeeder {
 
@@ -14,24 +16,26 @@ public class DatabaseSeeder {
     CommandLineRunner initDatabase(UserRepository userRepository) {
         return args -> {
             // Change this to whatever email you want your Admin to use
-            String adminEmail = "roshansah393@gmail.com";
+            String adminEmail = "itshroshan@gmail.com";
 
-            // If the database is empty and doesn't have this admin yet...
-            if (userRepository.findByEmail(adminEmail).isEmpty()) {
+            // Check if admin exists
+            Optional<User> existingAdmin = userRepository.findByEmail(adminEmail);
+            User admin;
 
-                User admin = new User();
+            if (existingAdmin.isEmpty()) {
+                admin = new User();
                 admin.setName("System Admin");
                 admin.setEmail(adminEmail);
-
-                // Set your desired admin password here (it will be safely hashed!)
-                admin.setPassword(BCrypt.hashpw("admin123", BCrypt.gensalt()));
-
                 admin.setRole("admin");
-                admin.setIsVerified(1); // Auto-verify the admin
-
-                userRepository.save(admin);
-                System.out.println("✅ FRESH ADMIN ACCOUNT GENERATED SUCCESSFULLY!");
+                admin.setIsVerified(1);
+            } else {
+                admin = existingAdmin.get();
             }
+
+            // FORCE update the password to admin123 so the user can always log in
+            admin.setPassword(BCrypt.hashpw("admin123", BCrypt.gensalt()));
+            userRepository.save(admin);
+            System.out.println("✅ ADMIN ACCOUNT PASSWORD FORCED TO: admin123");
         };
     }
 }

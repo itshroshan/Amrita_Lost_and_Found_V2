@@ -1,6 +1,7 @@
 # React
 frontend/node_modules/
 frontend/build/
+frontend/dist/
 
 # Java
 backend/target/
@@ -16,3 +17,6 @@ Thumbs.db
 # Environment
 .env
 *.log
+
+# IntelliJ
+*.iml

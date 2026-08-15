@@ -19,6 +19,9 @@ public class LostItem {
 
     private String description;
     private String location;
+    
+    @Column(columnDefinition = "TEXT")
+    private String image;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -46,6 +49,9 @@ public class LostItem {
 
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
+
+    public String getImage() { return image; }
+    public void setImage(String image) { this.image = image; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

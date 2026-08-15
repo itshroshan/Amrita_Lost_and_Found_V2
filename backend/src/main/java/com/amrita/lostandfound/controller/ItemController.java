@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/items")
@@ -283,14 +284,43 @@ public class ItemController {
 
     @PreAuthorize("hasAnyRole('STUDENT', 'FACULTY', 'ADMIN')")
     @PostMapping("/lost")
-    public ResponseEntity<?> reportLostItem(@RequestBody LostItem requestItem, Authentication authentication) {
+    public ResponseEntity<?> reportLostItem(
+            @RequestParam("itemName") String itemName,
+            @RequestParam("description") String description,
+            @RequestParam("location") String location,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            Authentication authentication) {
+            
         String email = authentication.getName();
         
         LostItem lostItem = new LostItem();
         lostItem.setStudentEmail(email);
-        lostItem.setItemName(requestItem.getItemName());
-        lostItem.setDescription(requestItem.getDescription());
-        lostItem.setLocation(requestItem.getLocation());
+        lostItem.setItemName(itemName);
+        lostItem.setDescription(description);
+        lostItem.setLocation(location);
+        
+        if (image != null && !image.isEmpty()) {
+            if (image.getSize() > 5 * 1024 * 1024) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Image size exceeds 5MB limit", false));
+            }
+            String filename = org.springframework.util.StringUtils.cleanPath(image.getOriginalFilename());
+            String contentType = image.getContentType();
+            
+            if (contentType == null || !contentType.startsWith("image/")) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Invalid file type. Only images allowed.", false));
+            }
+            
+            if (!filename.toLowerCase().matches(".*\\.(jpg|jpeg|png)$")) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Only JPG/JPEG/PNG images allowed", false));
+            }
+            try {
+                String imageUrl = cloudinaryService.uploadImage(image);
+                lostItem.setImage(imageUrl);
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new MessageResponse("Failed to upload image to the cloud.", false));
+            }
+        }
         
         lostItemRepository.save(lostItem);
         smartMatchService.scanForLostItem(lostItem);

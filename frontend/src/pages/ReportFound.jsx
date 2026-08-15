@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { PackagePlus, MapPin, AlignLeft, Image as ImageIcon, ArrowLeft } from 'lucide-react';
+import { PackagePlus, MapPin, AlignLeft, Image as ImageIcon, ArrowLeft, Camera, FileImage } from 'lucide-react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function ReportFound() {
+  useDocumentTitle('Report Found Item');
   const [formData, setFormData] = useState({
     itemName: '',
     description: '',
@@ -136,23 +138,83 @@ export default function ReportFound() {
             <div>
               <label className="label-text">Photo (Optional)</label>
               <div 
-                className="mt-1 flex justify-center px-6 pt-4 pb-4 border-2 border-slate-200 dark:border-slate-700 border-dashed rounded-xl hover:border-brand-400 dark:hover:border-brand-500 transition-colors bg-white dark:bg-slate-900 cursor-pointer"
-                onClick={() => document.getElementById('file-upload').click()}
+                className="mt-1 flex justify-center px-6 pt-4 pb-4 border-2 border-slate-200 dark:border-slate-700 border-dashed rounded-xl hover:border-brand-400 dark:hover:border-brand-500 transition-colors bg-white dark:bg-slate-900"
               >
-                <div className="space-y-1 text-center">
+                <div className="w-full text-center">
                   {image ? (
-                    <div className="text-brand-600 font-medium">{image.name}</div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 overflow-hidden">
+                        <div className="h-10 w-10 shrink-0 bg-brand-100 dark:bg-brand-900/50 rounded-lg flex items-center justify-center">
+                          <FileImage className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+                        </div>
+                        <div className="truncate">
+                          <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                            {image.name}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {(image.size / (1024 * 1024)).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setImage(null); }}
+                        className="text-sm text-red-500 hover:text-red-600 font-medium px-2 py-1"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   ) : (
-                    <ImageIcon className="mx-auto h-12 w-12 text-slate-300" />
+                    <>
+                      {/* Mobile View: Explicit Buttons */}
+                      <div className="sm:hidden flex flex-col space-y-3 w-full">
+                        <label className="flex items-center justify-center cursor-pointer w-full py-3 px-4 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-colors">
+                          <Camera className="w-5 h-5 mr-2 text-brand-500" />
+                          Take Photo
+                          <input 
+                            type="file" 
+                            className="sr-only" 
+                            accept="image/jpeg,image/png,image/jpg"
+                            capture="environment"
+                            onChange={handleImageChange}
+                          />
+                        </label>
+                        <label className="flex items-center justify-center cursor-pointer w-full py-3 px-4 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-colors">
+                          <FileImage className="w-5 h-5 mr-2 text-brand-500" />
+                          Choose from Gallery
+                          <input 
+                            type="file" 
+                            className="sr-only" 
+                            accept="image/jpeg,image/png,image/jpg"
+                            onChange={handleImageChange}
+                          />
+                        </label>
+                        <p className="text-xs text-center text-slate-500 mt-1">PNG, JPG up to 5MB</p>
+                      </div>
+
+                      {/* Desktop View: Drag and Drop */}
+                      <label 
+                        htmlFor="file-upload"
+                        className="hidden sm:block text-center cursor-pointer w-full h-full"
+                      >
+                        <ImageIcon className="mx-auto h-12 w-12 text-slate-300" />
+                        <div className="flex text-sm text-slate-600 mt-2 justify-center">
+                          <span className="relative font-medium text-brand-600 dark:text-brand-400 hover:text-brand-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-brand-500 px-2">
+                            Upload a file
+                            <input 
+                              id="file-upload" 
+                              type="file" 
+                              className="sr-only" 
+                              onChange={handleImageChange} 
+                              accept="image/jpeg,image/png,image/jpg" 
+                            />
+                          </span>
+                          <p className="pl-1">or drag and drop</p>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 5MB</p>
+                      </label>
+                    </>
                   )}
-                  <div className="flex text-sm text-slate-600 mt-2">
-                    <label className="relative cursor-pointer bg-transparent rounded-md font-medium text-brand-600 dark:text-brand-400 hover:text-brand-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-brand-500 px-2">
-                      <span>Upload a file</span>
-                      <input id="file-upload" type="file" className="sr-only" onChange={handleImageChange} accept="image/*" />
-                    </label>
-                    <p className="pl-1">or drag and drop</p>
-                  </div>
-                  <p className="text-xs text-slate-500">PNG, JPG up to 5MB</p>
                 </div>
               </div>
             </div>

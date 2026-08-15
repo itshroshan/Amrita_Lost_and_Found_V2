@@ -1,15 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { Mail, Lock, User, ArrowRight, ShieldCheck, Key } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, ShieldCheck, FileKey, CheckCircle2, Key } from 'lucide-react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function Register() {
+  useDocumentTitle('Register');
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1 for register, 2 for OTP
   const [otp, setOtp] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.documentElement.classList.remove('dark');
+  }, []);
 
   const handleRegister = async (e) => {
     e.preventDefault();

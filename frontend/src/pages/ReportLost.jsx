@@ -2,25 +2,56 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { AlertCircle, MapPin, AlignLeft, ArrowLeft } from 'lucide-react';
+import { PackageMinus, MapPin, AlignLeft, Image as ImageIcon, ArrowLeft, AlertCircle } from 'lucide-react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { Upload, FileImage, Camera, Loader2 } from 'lucide-react';
 
 export default function ReportLost() {
+  useDocumentTitle('Report Lost Item');
   const [formData, setFormData] = useState({
     itemName: '',
     description: '',
     location: '',
   });
+  const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
   const dashboardRoute = user?.role === 'admin' ? '/admin' : '/dashboard';
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.match('image.*')) {
+        toast.error('Please upload an image file (JPG, PNG)');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size must be less than 5MB');
+        return;
+      }
+      setImage(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
+    const data = new FormData();
+    data.append('itemName', formData.itemName);
+    data.append('description', formData.description);
+    data.append('location', formData.location);
+    if (image) {
+      data.append('image', image);
+    }
+
     try {
-      await axios.post('/api/items/lost', formData);
+      await axios.post('/api/items/lost', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       toast.success('Lost item reported successfully!');
       navigate(dashboardRoute);
     } catch (err) {
@@ -105,13 +136,112 @@ export default function ReportLost() {
               </div>
             </div>
 
+            <div>
+              <label className="label-text flex items-center justify-between">
+                <span>Upload Image</span>
+                <span className="text-xs text-slate-400 font-normal">Optional (Max 5MB)</span>
+              </label>
+              
+              <div className="mt-2">
+                <div 
+                  className={`
+                    border-2 border-dashed rounded-xl p-4 transition-colors
+                    ${image ? 'border-brand-300 bg-brand-50/50 dark:border-brand-800 dark:bg-brand-900/10' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-brand-400 hover:bg-slate-50 dark:hover:border-brand-500'}
+                  `}
+                >
+                  {image ? (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 overflow-hidden">
+                        <div className="h-10 w-10 shrink-0 bg-brand-100 dark:bg-brand-900/50 rounded-lg flex items-center justify-center">
+                          <FileImage className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+                        </div>
+                        <div className="truncate">
+                          <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                            {image.name}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {(image.size / (1024 * 1024)).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setImage(null); }}
+                        className="text-sm text-red-500 hover:text-red-600 font-medium px-2 py-1"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Mobile View: Explicit Buttons */}
+                      <div className="sm:hidden flex flex-col space-y-3 w-full">
+                        <label className="flex items-center justify-center cursor-pointer w-full py-3 px-4 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-colors">
+                          <Camera className="w-5 h-5 mr-2 text-brand-500" />
+                          Take Photo
+                          <input 
+                            type="file" 
+                            className="sr-only" 
+                            accept="image/jpeg,image/png,image/jpg"
+                            capture="environment"
+                            onChange={handleImageChange}
+                          />
+                        </label>
+                        <label className="flex items-center justify-center cursor-pointer w-full py-3 px-4 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-colors">
+                          <FileImage className="w-5 h-5 mr-2 text-brand-500" />
+                          Choose from Gallery
+                          <input 
+                            type="file" 
+                            className="sr-only" 
+                            accept="image/jpeg,image/png,image/jpg"
+                            onChange={handleImageChange}
+                          />
+                        </label>
+                        <p className="text-xs text-center text-slate-500 mt-1">PNG, JPG up to 5MB</p>
+                      </div>
+
+                      {/* Desktop View: Drag and Drop */}
+                      <label 
+                        htmlFor="file-upload"
+                        className="hidden sm:block text-center cursor-pointer w-full h-full"
+                      >
+                        <Camera className="mx-auto h-8 w-8 text-slate-400" />
+                        <div className="mt-2 flex text-sm leading-6 justify-center">
+                          <span className="relative font-semibold text-brand-600 focus-within:outline-none hover:text-brand-500">
+                            Upload a file
+                            <input 
+                              id="file-upload" 
+                              name="file-upload" 
+                              type="file" 
+                              className="sr-only" 
+                              accept="image/jpeg,image/png,image/jpg"
+                              onChange={handleImageChange}
+                            />
+                          </span>
+                          <p className="pl-1 text-slate-500">or drag and drop</p>
+                        </div>
+                        <p className="text-xs leading-5 text-slate-500">PNG, JPG up to 5MB</p>
+                      </label>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="pt-2">
               <button
                 type="submit"
                 disabled={loading}
                 className="btn-primary w-full bg-gradient-to-r from-orange-500 to-orange-400 shadow-[0_4px_14px_0_rgba(249,115,22,0.3)] hover:shadow-[0_6px_20px_0_rgba(249,115,22,0.4)] hover:-translate-y-0.5 focus-visible:ring-orange-500"
               >
-                {loading ? 'Submitting...' : 'Post Notice'}
+                {loading ? (
+                  <>
+                    <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                    Posting...
+                  </>
+                ) : (
+                  'Post Notice'
+                )}
               </button>
             </div>
           </form>

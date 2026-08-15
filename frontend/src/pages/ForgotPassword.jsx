@@ -3,8 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Mail, Lock, ArrowRight, ShieldCheck, KeyRound } from 'lucide-react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function ForgotPassword() {
+  useDocumentTitle('Forgot Password');
   const [step, setStep] = useState(1); // 1: Email, 2: OTP & New Password
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');

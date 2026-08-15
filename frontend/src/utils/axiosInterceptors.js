@@ -21,9 +21,10 @@ export const setupAxiosInterceptors = () => {
         // We just clear the user state.
         localStorage.removeItem('user');
 
-        // Only show toast if we were previously logged in (avoids toast spam on pure unauthenticated requests)
-        // Wait, if it's 401, they probably had an invalid/expired token.
-        toast.error('Session expired. Please log in again.');
+        // Only show "Session expired" toast if the 401 wasn't from a login/register attempt
+        if (error.config && error.config.url && !error.config.url.includes('/auth/login') && !error.config.url.includes('/auth/register')) {
+          toast.error('Session expired. Please log in again.');
+        }
 
         // Redirect to login page
         // Using window.location.href ensures a hard reload and clears memory state

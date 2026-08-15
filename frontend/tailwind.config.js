@@ -1,3 +1,5 @@
+import colors from 'tailwindcss/colors';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -8,6 +10,11 @@ export default {
   theme: {
     extend: {
       colors: {
+        slate: {
+          ...colors.neutral,
+          800: '#121212', // Darker card background
+          900: '#000000', // Pure black body background
+        },
         brand: {
           50: '#fdf2f6',
           100: '#fae6ee',

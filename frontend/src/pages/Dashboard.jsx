@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { AlertCircle, PlusCircle, PackageCheck, Info, PackageSearch, MapPin, Search, Calendar, LogOut, Clock, Filter, ListFilter, User, LogIn, Trash2, Moon, Sun, ChevronDown } from 'lucide-react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function Dashboard() {
+  useDocumentTitle('Student Dashboard');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('found'); // 'found' or 'my-activity'
@@ -42,8 +44,10 @@ export default function Dashboard() {
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
   }, [isDark]);
 
@@ -110,7 +114,7 @@ export default function Dashboard() {
     return (
       <div 
         key={item.id}
-        className="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row group overflow-hidden transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 shadow-sm dark:shadow-lg h-auto"
+        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row group overflow-hidden transition-all hover:bg-slate-50 dark:hover:bg-slate-800/80 shadow-sm dark:shadow-lg h-auto"
       >
         {item.image ? (
           <div className="w-full h-48 sm:h-auto sm:w-64 flex-shrink-0 relative">
@@ -205,10 +209,15 @@ export default function Dashboard() {
       <nav className="bg-brand-600 dark:bg-brand-800 sticky top-0 z-50 shadow-md">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <PackageSearch className="h-8 w-8 text-white mr-2" />
-              <span className="text-xl font-bold text-white">
-                Amrita Lost & Found
+            <div className="flex items-center min-w-0">
+              <img 
+                src="/amrita-logo.jpg" 
+                alt="Amrita Logo" 
+                className="h-8 sm:h-10 w-auto max-w-[120px] sm:max-w-none bg-white p-1 rounded-md mr-2 sm:mr-3 object-contain shrink-0" 
+              />
+              <span className="text-lg sm:text-xl font-bold text-white truncate">
+                Amrita<span className="hidden sm:inline"> Lost & Found</span>
+                <span className="sm:hidden"> L&F</span>
               </span>
             </div>
             <div className="flex items-center space-x-4">
@@ -237,17 +246,17 @@ export default function Dashboard() {
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Dashboard</h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Manage and report lost and found items on campus.</p>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <button 
               onClick={() => navigate('/report-lost')}
-              className="btn-secondary flex items-center group"
+              className="btn-secondary flex items-center justify-center group w-full sm:w-auto"
             >
               <AlertCircle className="w-4 h-4 mr-2 text-slate-400 group-hover:text-slate-600 transition-colors" />
               Report Lost
             </button>
             <button 
               onClick={() => navigate('/report-found')}
-              className="btn-primary flex items-center"
+              className="btn-primary flex items-center justify-center w-full sm:w-auto"
             >
               <PlusCircle className="w-4 h-4 mr-2" />
               Report Found
@@ -259,7 +268,7 @@ export default function Dashboard() {
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 space-y-4 lg:space-y-0 lg:space-x-4">
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
             {/* Custom Tabs */}
-            <div className="flex space-x-1 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm shrink-0">
+            <div className="flex w-full sm:w-auto space-x-1 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm shrink-0">
               <button
                 onClick={() => {
                   if (activeTab !== 'found') {
@@ -268,14 +277,14 @@ export default function Dashboard() {
                     setActiveTab('found');
                   }
                 }}
-                className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                className={`flex-1 sm:flex-none px-2 sm:px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
                     activeTab === 'found' 
                       ? 'bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400 shadow-sm' 
                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                 }`}
               >
-                <PackageCheck className="w-4 h-4 inline mr-2 align-text-bottom" />
-                Found Items
+                <PackageCheck className="w-4 h-4 inline mr-1 sm:mr-2 align-text-bottom" />
+                <span className="truncate">Found<span className="hidden sm:inline"> Items</span></span>
               </button>
               <button
                 onClick={() => {
@@ -285,14 +294,14 @@ export default function Dashboard() {
                     setActiveTab('my-activity');
                   }
                 }}
-                className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                className={`flex-1 sm:flex-none px-2 sm:px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
                     activeTab === 'my-activity' 
                       ? 'bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400 shadow-sm' 
                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                 }`}
               >
-                <User className="w-4 h-4 inline mr-2 align-text-bottom" />
-                My Activity
+                <User className="w-4 h-4 inline mr-1 sm:mr-2 align-text-bottom" />
+                <span className="truncate">Activity<span className="hidden sm:inline"> (My)</span></span>
               </button>
             </div>
 

@@ -41,7 +41,8 @@ public class AuthController {
     private final Map<String, Map<String, String>> otpStorage = new HashMap<>();
 
     private boolean validStudentEmail(String email) {
-        return email != null && email.startsWith("bl.") && email.endsWith("@bl.students.amrita.edu");
+        // Format: bl.<dept>.<roll>@bl.students.amrita.edu
+        return email != null && email.matches("^bl\\.[a-zA-Z0-9]+\\.[a-zA-Z0-9]+@bl\\.students\\.amrita\\.edu$");
     }
 
     private boolean validFacultyEmail(String email) {
