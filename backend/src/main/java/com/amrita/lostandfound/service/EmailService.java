@@ -22,7 +22,14 @@ public class EmailService {
         message.setSubject("OTP Verification - Lost & Found System");
         message.setText("Your OTP for login is: " + otp);
 
-        mailSender.send(message);
+        try {
+            mailSender.send(message);
+            System.out.println("OTP Email successfully sent to: " + toEmail);
+        } catch (Exception e) {
+            System.err.println("FAILED to send OTP email to " + toEmail);
+            System.err.println("Error details: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     // --- NEW: DEDICATED MATCH NOTIFICATION METHOD ---
@@ -35,7 +42,14 @@ public class EmailService {
         message.setSubject("Item Match Found! - Amrita Lost & Found"); // Clean subject line!
         message.setText(matchMessage); // Uses exactly the message we generate
 
-        mailSender.send(message);
+        try {
+            mailSender.send(message);
+            System.out.println("Match Notification successfully sent to: " + toEmail);
+        } catch (Exception e) {
+            System.err.println("FAILED to send Match Notification to " + toEmail);
+            System.err.println("Error details: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
 }

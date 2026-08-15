@@ -70,11 +70,11 @@ public class ItemController {
     @GetMapping("/found")
     public ResponseEntity<Map<String, Object>> getFoundItems(
             @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false, defaultValue = "0") int days,
             @RequestParam(required = false, defaultValue = "") String query) {
         
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(page, pageSize, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
         Page<FoundItem> itemPage;
 
         LocalDateTime filterDate = null;
@@ -163,11 +163,12 @@ public class ItemController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/pending")
-    public ResponseEntity<Map<String, Object>> getPendingItems(
+    public ResponseEntity<Map<String, Object>> getPendingFoundItems(
             @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false, defaultValue = "0") int days) {
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(page, pageSize, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+        
+        Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
         
         LocalDateTime filterDate = null;
         if (days > 0) {
@@ -218,8 +219,8 @@ public class ItemController {
         Optional<FoundItem> itemOpt = foundItemRepository.findById(id);
         if (itemOpt.isPresent()) {
             FoundItem item = itemOpt.get();
-            if (!isAdmin) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Only admins can delete found items", false));
+            if (!isAdmin && (email == null || !email.equals(item.getReportedBy()))) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("You can only delete your own reports", false));
             }
 
             if (item.getImage() != null && !item.getImage().isEmpty()) {
@@ -235,14 +236,14 @@ public class ItemController {
 
     @GetMapping("/lost")
     public ResponseEntity<Map<String, Object>> getLostItems(
-            @RequestParam(defaultValue = "0") int page, 
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false, defaultValue = "0") int days,
             Authentication authentication) {
         boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(page, pageSize, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
         
         LocalDateTime filterDate = null;
         if (days > 0) {
@@ -350,12 +351,13 @@ public class ItemController {
     @GetMapping("/my-found")
     public ResponseEntity<Map<String, Object>> getMyFoundItems(
             @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false, defaultValue = "0") int days,
             Authentication authentication) {
         
+        Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+        
         String email = authentication.getName();
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(page, pageSize, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
         
         LocalDateTime filterDate = null;
         if (days > 0) {
@@ -451,9 +453,10 @@ public class ItemController {
     @GetMapping("/claimed")
     public ResponseEntity<Map<String, Object>> getClaimedItems(
             @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false, defaultValue = "0") int days) {
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(page, pageSize);
+        
+        Pageable pageable = PageRequest.of(page, size);
 
         LocalDateTime filterDate = null;
         if (days > 0) {

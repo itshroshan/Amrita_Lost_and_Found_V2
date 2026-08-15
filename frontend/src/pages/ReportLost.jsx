@@ -64,8 +64,8 @@ export default function ReportLost() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-6 px-4 sm:px-6 relative flex flex-col justify-center">
       <div className="max-w-3xl w-full mx-auto relative z-10">
-        
-        <button 
+
+        <button
           onClick={() => navigate(dashboardRoute)}
           className="flex items-center text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors mb-4 font-medium"
         >
@@ -97,7 +97,7 @@ export default function ReportLost() {
                   className="input-field pl-10"
                   placeholder="e.g. Black Dell Laptop"
                   value={formData.itemName}
-                  onChange={(e) => setFormData({...formData, itemName: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, itemName: e.target.value })}
                 />
               </div>
             </div>
@@ -114,7 +114,7 @@ export default function ReportLost() {
                   className="input-field pl-10"
                   placeholder="e.g. Amriteshwari Hall, 3rd Bench"
                   value={formData.location}
-                  onChange={(e) => setFormData({...formData, location: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 />
               </div>
             </div>
@@ -131,7 +131,7 @@ export default function ReportLost() {
                   className="input-field pl-10 py-2"
                   placeholder="Provide identifying details to help someone recognize it..."
                   value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
               </div>
             </div>
@@ -141,9 +141,9 @@ export default function ReportLost() {
                 <span>Upload Image</span>
                 <span className="text-xs text-slate-400 font-normal">Optional (Max 5MB)</span>
               </label>
-              
+
               <div className="mt-2">
-                <div 
+                <div
                   className={`
                     border-2 border-dashed rounded-xl p-4 transition-colors
                     ${image ? 'border-brand-300 bg-brand-50/50 dark:border-brand-800 dark:bg-brand-900/10' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-brand-400 hover:bg-slate-50 dark:hover:border-brand-500'}
@@ -179,9 +179,9 @@ export default function ReportLost() {
                         <label className="flex items-center justify-center cursor-pointer w-full py-3 px-4 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-colors">
                           <Camera className="w-5 h-5 mr-2 text-brand-500" />
                           Take Photo
-                          <input 
-                            type="file" 
-                            className="sr-only" 
+                          <input
+                            type="file"
+                            className="sr-only"
                             accept="image/jpeg,image/png,image/jpg"
                             capture="environment"
                             onChange={handleImageChange}
@@ -190,9 +190,9 @@ export default function ReportLost() {
                         <label className="flex items-center justify-center cursor-pointer w-full py-3 px-4 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-colors">
                           <FileImage className="w-5 h-5 mr-2 text-brand-500" />
                           Choose from Gallery
-                          <input 
-                            type="file" 
-                            className="sr-only" 
+                          <input
+                            type="file"
+                            className="sr-only"
                             accept="image/jpeg,image/png,image/jpg"
                             onChange={handleImageChange}
                           />
@@ -201,7 +201,7 @@ export default function ReportLost() {
                       </div>
 
                       {/* Desktop View: Drag and Drop */}
-                      <label 
+                      <label
                         htmlFor="file-upload"
                         className="hidden sm:block text-center cursor-pointer w-full h-full"
                       >
@@ -209,11 +209,11 @@ export default function ReportLost() {
                         <div className="mt-2 flex text-sm leading-6 justify-center">
                           <span className="relative font-semibold text-brand-600 focus-within:outline-none hover:text-brand-500">
                             Upload a file
-                            <input 
-                              id="file-upload" 
-                              name="file-upload" 
-                              type="file" 
-                              className="sr-only" 
+                            <input
+                              id="file-upload"
+                              name="file-upload"
+                              type="file"
+                              className="sr-only"
                               accept="image/jpeg,image/png,image/jpg"
                               onChange={handleImageChange}
                             />
@@ -232,16 +232,9 @@ export default function ReportLost() {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary w-full bg-gradient-to-r from-orange-500 to-orange-400 shadow-[0_4px_14px_0_rgba(249,115,22,0.3)] hover:shadow-[0_6px_20px_0_rgba(249,115,22,0.4)] hover:-translate-y-0.5 focus-visible:ring-orange-500"
+                className="btn-primary w-full"
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="animate-spin h-5 w-5 mr-2" />
-                    Posting...
-                  </>
-                ) : (
-                  'Post Notice'
-                )}
+                {loading ? 'Submitting...' : 'Submit Report'}
               </button>
             </div>
           </form>
