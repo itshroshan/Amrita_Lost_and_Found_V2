@@ -13,6 +13,21 @@ backend/target/
 # OS
 .DS_Store
 Thumbs.db
+# React
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+
+# Java
+backend/target/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Environment
 .env
@@ -20,3 +35,4 @@ Thumbs.db
 
 # IntelliJ
 *.iml
+nginx/  
